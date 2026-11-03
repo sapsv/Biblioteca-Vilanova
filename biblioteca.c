@@ -170,7 +170,7 @@ int devolver_livro(Livro acervo[], int quantidade, int codigo){
 }
 
 void relatorio(const Livro acervo[], int quantidade){
-    int disponiveis;
+    int disponiveis = 0;
     int emprestados;
     float percentual;
     
@@ -190,4 +190,23 @@ void relatorio(const Livro acervo[], int quantidade){
     printf("============================\n");
 
     return;
+}
+
+int salvar_acervo(const Livro acervo[], int quantidade){
+    int verificacao, verificacao_2;
+    FILE *arquivo = fopen("acervo.dat", "wb");
+    if (arquivo == NULL){
+        printf("Falha ao abrir o arquivo\n");
+        return 0;
+    }
+
+    verificacao = fwrite(&quantidade, sizeof(int), 1, arquivo);
+    if (verificacao == 1) printf("Sucesso ao ler quantidade de livros\n");
+    else printf("Falha ao ler quantidade de livros\n");
+    verificacao_2 = fwrite(acervo, sizeof(Livro), quantidade, arquivo);
+    if (verificacao_2 == quantidade) printf("Sucesso ao ler todos livros\n");
+    else printf("Falha ao ler todos livros\n");
+
+    if (verificacao == 1 && verificacao_2 == quantidade) return 1;
+    else return 0;
 }

@@ -201,12 +201,56 @@ int salvar_acervo(const Livro acervo[], int quantidade){
     }
 
     verificacao = fwrite(&quantidade, sizeof(int), 1, arquivo);
-    if (verificacao == 1) printf("Sucesso ao ler quantidade de livros\n");
+    if (verificacao == 1) printf("Sucesso ao gravar quantidade de livros\n");
     else printf("Falha ao ler quantidade de livros\n");
     verificacao_2 = fwrite(acervo, sizeof(Livro), quantidade, arquivo);
-    if (verificacao_2 == quantidade) printf("Sucesso ao ler todos livros\n");
+    if (verificacao_2 == quantidade) printf("Sucesso ao gravar todos livros\n");
     else printf("Falha ao ler todos livros\n");
 
-    if (verificacao == 1 && verificacao_2 == quantidade) return 1;
-    else return 0;
+    int sucesso = (verificacao == 1 && verificacao_2 == quantidade);
+
+    if (fclose(arquivo) == EOF) {
+    printf("Erro ao fechar arquivo.\n");
+    sucesso = 0;
+    }
+
+    return sucesso;
+}
+
+int carregar_acervo(Livro acervo[], int *quantidade, int capacidade){
+    int quantidade_lida;
+     FILE *arquivo = fopen("acervo.dat", "rb");
+     if (arquivo == NULL) {
+        printf("Nao foi possivel abrir o arquivo.\n");
+        return 0;
+    }
+
+    if (fread(&quantidade_lida, sizeof(int), 1, arquivo) != 1) {
+        printf("Falha ao ler a quantidade de livros.\n");
+        fclose(arquivo);
+        return 0;
+    }
+    if (quantidade_lida < 0 || quantidade_lida > capacidade) {
+        printf("Arquivo invalido: quantidade de livros incorreta.\n");
+        fclose(arquivo);
+        return 0;
+    }
+    size_t livros_lidos = fread(
+        acervo,
+        sizeof(Livro),
+        quantidade_lida,
+        arquivo
+    );
+    if (livros_lidos != (size_t)quantidade_lida) {
+        printf("Falha ao carregar todos os livros.\n");
+        fclose(arquivo);
+        return 0;
+    }
+    if (fclose(arquivo) == EOF) {
+        printf("Erro ao fechar arquivo.\n");
+        return 0;
+    }
+
+    *quantidade = quantidade_lida;
+    return 1;
 }

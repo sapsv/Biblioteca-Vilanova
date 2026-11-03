@@ -111,5 +111,10 @@ int main(){
         }
     }while (opcao != 0);
 
+    if (salvar_acervo(acervo, quantidade)) {
+        printf("Acervo salvo com sucesso!\n");
+    } else {
+        printf("Falha ao salvar o acervo.\n");
+    }
     return 0;
 }

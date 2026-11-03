@@ -14,6 +14,7 @@ typedef struct{
 
 } Livro;
 
+
 void exibir_livro(const Livro acervo[]);
 void listar_livros(const Livro acervo[], int quantidade);
 int buscar_livro(const Livro acervo[], int quantidade, int codigo);
@@ -23,5 +24,6 @@ int devolver_livro(Livro acervo[], int quantidade, int codigo);
 int ler_codigo(void);
 void relatorio(const Livro acervo[], int quantidade);
 int salvar_acervo(const Livro acervo[], int quantidade);
+int carregar_acervo(Livro acervo[], int *quantidade, int capacidade);
 
 #endif

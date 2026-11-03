@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <errno.h>
 #include "biblioteca.h"
 
 int main(){
@@ -10,10 +11,18 @@ int main(){
     int indice;
     int leitura;
 
-    if (carregar_acervo(acervo, &quantidade, MAX_LIVROS)) {
-        printf("Acervo carregado com sucesso!\n");
+    int estado = carregar_acervo(acervo, &quantidade, MAX_LIVROS);
+
+    if (estado == -1) {
+        printf("Nao foi possivel recuperar o acervo.\n");
+        printf("O arquivo original sera preservado.\n");
+        return 1;
+    }
+
+    if (estado == 0) {
+        printf("Nenhum arquivo encontrado. Biblioteca vazia.\n");
     } else {
-        printf("Nao foi possivel carregar o acervo.\n");
+        printf("Acervo recuperado com sucesso!\n");
     }
     do{
 

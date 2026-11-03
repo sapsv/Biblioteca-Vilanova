@@ -4,31 +4,17 @@
 int main(){
 
     Livro acervo[MAX_LIVROS];
-    int quantidade = 2;
+    int quantidade = 0;
     int opcao = 0;
     int codigo_busca;
     int indice;
     int leitura;
-    acervo[0] = (Livro){
-        777,
-        "Biblia Sagrada",
-        "Inspirados por Deus",
-        100,
-        1
-    };
-    //exibir_livro(&acervo[0]);
-    acervo[1] = (Livro){
-        934,
-        "Harry Potter e a Pedra Filosofal",
-        "J. K. Rowling",
-        1997,
-        1
-    };
-    
-    //exibir_livro(&acervo[1]);
-    //listar_livros(&acervo[0], quantidade);
-    //cadastrar_livro(acervo, &quantidade, MAX_LIVROS);
 
+    if (carregar_acervo(acervo, &quantidade, MAX_LIVROS)) {
+        printf("Acervo carregado com sucesso!\n");
+    } else {
+        printf("Nao foi possivel carregar o acervo.\n");
+    }
     do{
 
         printf("---Biblioteca Vilanova---\n");

@@ -121,7 +121,7 @@ void exibir_livro(const Livro acervo[]){
 
 void listar_livros(const Livro acervo[], int quantidade){
     if (quantidade == 0){ 
-    printf("Nenhum livro cadastrado"); 
+    printf("\nNenhum livro cadastrado\n\n"); 
     return;
     }    
     else{

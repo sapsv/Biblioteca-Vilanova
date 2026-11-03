@@ -106,6 +106,7 @@ int cadastrar_livro(Livro acervo[], int *quantidade, int capacidade){
             resultado = scanf("%d", &acervo[*quantidade].ano);
         }
     }while (resultado != 1);
+    printf("\nLivro cadastrado com sucesso\n\n");
     acervo[*quantidade].disponivel = 1;
     (*quantidade)++;
 
@@ -186,12 +187,12 @@ void relatorio(const Livro acervo[], int quantidade){
     if (quantidade > 0) percentual = (emprestados*100.0)/quantidade;
     else percentual = 0;
 
-    printf("---RELATORIO DO ACERVO---\n");
+    printf("\n---RELATORIO DO ACERVO---\n");
     printf("Total de livros: %d\n", quantidade);
     printf("Livros disponiveis: %d\n", disponiveis);
     printf("Livros emprestados: %d\n", emprestados);
     printf("Taxa de emprestimo: %.1f%%\n", percentual);
-    printf("============================\n");
+    printf("============================\n\n");
 
     return;
 }

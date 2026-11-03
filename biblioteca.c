@@ -1,4 +1,7 @@
 #include <stdio.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <errno.h>
 #include "biblioteca.h"
 #include <string.h>
@@ -193,125 +196,116 @@ void relatorio(const Livro acervo[], int quantidade){
     return;
 }
 
-int salvar_acervo(const Livro acervo[], int quantidade){
-    int verificacao, verificacao_2;
-    FILE *arquivo = fopen("acervo.dat", "wb");
-    if (arquivo == NULL){
-        printf("Falha ao abrir o arquivo\n");
+int salvar_acervo(const Livro acervo[], int quantidade) {
+    if (quantidade < 0 || quantidade > MAX_LIVROS) return 0;
+
+    // Grava primeiro em um arquivo temporario, preservando o anterior.
+    FILE *arquivo = fopen("acervo.tmp", "wb");
+    if (arquivo == NULL) {
+        perror("Erro ao criar arquivo temporario");
         return 0;
     }
 
-    verificacao = fwrite(&quantidade, sizeof(int), 1, arquivo);
-    if (verificacao == 1) printf("Sucesso ao gravar quantidade de livros\n");
-    else printf("Falha ao ler quantidade de livros\n");
-    verificacao_2 = fwrite(acervo, sizeof(Livro), quantidade, arquivo);
-    if (verificacao_2 == quantidade) printf("Sucesso ao gravar todos livros\n");
-    else printf("Falha ao ler todos livros\n");
+    int sucesso = 1;
+    if (fwrite(&quantidade, sizeof quantidade, 1, arquivo) != 1)
+        sucesso = 0;
 
-    int sucesso = (verificacao == 1 && verificacao_2 == quantidade);
+    if (sucesso &&
+        fwrite(acervo, sizeof(Livro), (size_t)quantidade, arquivo) != (size_t)quantidade)
+        sucesso = 0;
 
-    if (fclose(arquivo) == EOF) {
-    printf("Erro ao fechar arquivo.\n");
-    sucesso = 0;
+    if (fclose(arquivo) == EOF)
+        sucesso = 0;
+
+    if (!sucesso) {
+        remove("acervo.tmp");
+        printf("Erro ao gravar o acervo.\n");
+        return 0;
     }
 
-    return sucesso;
+    // Substitui o arquivo antigo somente apos a gravacao completa.
+#ifdef _WIN32
+    if (!MoveFileExA("acervo.tmp", "acervo.dat",
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+#else
+    if (rename("acervo.tmp", "acervo.dat") != 0) {
+#endif
+        printf("Falha ao substituir acervo.dat; arquivo original preservado.\n");
+        remove("acervo.tmp");
+        return 0;
+    }
+
+    return 1;
 }
 
-int carregar_acervo(Livro acervo[], int *quantidade, int capacidade){
-    int quantidade_lida;
+int carregar_acervo(Livro acervo[], int *quantidade, int capacidade) {
     FILE *arquivo = fopen("acervo.dat", "rb");
-    Livro temporario[MAX_LIVROS];
-    size_t livros_lidos = fread(
-        temporario,
-        sizeof(Livro),
-        quantidade_lida,
-        arquivo
-    );
-
-    for (int i = 0; i < quantidade_lida; i++) {
-
-        if (temporario[i].codigo < 100 ||
-            temporario[i].codigo > 999) {
-
-            printf("Arquivo invalido: codigo incorreto.\n");
-            fclose(arquivo);
-            return -1;
-        }
-
-        if (temporario[i].disponivel != 0 &&
-            temporario[i].disponivel != 1) {
-
-            printf("Arquivo invalido: disponibilidade incorreta.\n");
-            fclose(arquivo);
-            return -1;
-        }
-    }
-
-    for (int i = 0; i < quantidade_lida; i++) {
-        for (int j = i + 1; j < quantidade_lida; j++) {
-
-            if(acervo[i].codigo == acervo[j].codigo) return -1;
-        }
-    }
-    for (int i = 0; i < quantidade_lida; i++) {
-        if (memchr(temporario[i].titulo, '\0',
-           sizeof(temporario[i].titulo)) == NULL) {
-
-            printf("Arquivo invalido: titulo sem terminador.\n");
-            fclose(arquivo);
-            return -1;
-        }
-    }
-    for (int i = 0; i < quantidade_lida; i++) {
-        if (memchr(temporario[i].autor, '\0',
-           sizeof(temporario[i].autor)) == NULL) {
-
-            printf("Arquivo invalido: string de autor sem terminador.\n");
-            fclose(arquivo);
-            return -1;
-        }
-    }
-    
-    int extra = fgetc(arquivo);
-
-    if (extra != EOF || ferror(arquivo)) {
-        printf("Arquivo invalido ou erro de leitura.\n");
-        fclose(arquivo);
-        return -1;
-    }
 
     if (arquivo == NULL) {
-        if (errno == ENOENT) {
-            return 0;
+        if (errno == ENOENT) return 0;  // Primeira execucao: nenhum arquivo.
+        perror("Erro ao abrir acervo.dat");
+        return -1;
+    }
+
+    int quantidade_lida;
+    Livro temporario[MAX_LIVROS];
+    int valido = 1;
+
+    if (capacidade < 0 || capacidade > MAX_LIVROS)
+        valido = 0;
+
+    // A ordem importa: nunca usar quantidade_lida antes do fread.
+    if (valido && fread(&quantidade_lida, sizeof quantidade_lida, 1, arquivo) != 1)
+        valido = 0;
+
+    if (valido && (quantidade_lida < 0 || quantidade_lida > capacidade))
+        valido = 0;
+
+    if (valido &&
+        fread(temporario, sizeof(Livro), (size_t)quantidade_lida, arquivo) != (size_t)quantidade_lida)
+        valido = 0;
+
+    // Rejeita bytes extras e erros de leitura.
+    if (valido) {
+        int extra = fgetc(arquivo);
+        if (extra != EOF || ferror(arquivo))
+            valido = 0;
+    }
+
+    // Confere campos e codigos duplicados antes de tocar no acervo principal.
+    if (valido) {
+        for (int i = 0; i < quantidade_lida && valido; i++) {
+            const Livro *livro = &temporario[i];
+
+            if (livro->codigo < 100 || livro->codigo > 999 ||
+                (livro->disponivel != 0 && livro->disponivel != 1) ||
+                memchr(livro->titulo, '\0', sizeof livro->titulo) == NULL ||
+                memchr(livro->autor, '\0', sizeof livro->autor) == NULL) {
+                valido = 0;
+                break;
+            }
+
+            for (int j = 0; j < i; j++) {
+                if (temporario[j].codigo == livro->codigo) {
+                    valido = 0;
+                    break;
+                }
+            }
         }
-
-        printf("Erro ao abrir o arquivo.\n");
-        return -1;
     }
 
-    if (fread(&quantidade_lida, sizeof(int), 1, arquivo) != 1) {
-        printf("Falha ao ler a quantidade de livros.\n");
-        fclose(arquivo);
-        return -1;
-    }
-    if (quantidade_lida < 0 || quantidade_lida > capacidade) {
-        printf("Arquivo invalido: quantidade de livros incorreta.\n");
-        fclose(arquivo);
+    if (fclose(arquivo) == EOF)
+        valido = 0;
+
+    if (!valido) {
+        printf("Arquivo invalido ou incompleto; dados anteriores preservados.\n");
         return -1;
     }
 
-    if (livros_lidos != (size_t)quantidade_lida) {
-        printf("Falha ao carregar todos os livros.\n");
-        fclose(arquivo);
-        return -1;
-    }
-    if (fclose(arquivo) == EOF) {
-        printf("Erro ao fechar arquivo.\n");
-        return -1;
-    }
-    
-    memcpy(acervo, temporario, quantidade_lida * sizeof(Livro));
+    // O acervo real so muda depois de todas as verificacoes.
+    for (int i = 0; i < quantidade_lida; i++)
+        acervo[i] = temporario[i];
+
     *quantidade = quantidade_lida;
     return 1;
 }

@@ -168,3 +168,26 @@ int devolver_livro(Livro acervo[], int quantidade, int codigo){
     }
     return 1; 
 }
+
+void relatorio(const Livro acervo[], int quantidade){
+    int disponiveis;
+    int emprestados;
+    float percentual;
+    
+    for (int i = 0; i < quantidade; i++){
+        if(acervo[i].disponivel == 1) disponiveis++;
+    }
+    emprestados = quantidade - disponiveis;
+
+    if (quantidade > 0) percentual = (emprestados*100.0)/quantidade;
+    else percentual = 0;
+
+    printf("---RELATORIO DO ACERVO---\n");
+    printf("Total de livros: %d\n", quantidade);
+    printf("Livros disponiveis: %d\n", disponiveis);
+    printf("Livros emprestados: %d\n", emprestados);
+    printf("Taxa de emprestimo: %.1f%%\n", percentual);
+    printf("============================\n");
+
+    return;
+}

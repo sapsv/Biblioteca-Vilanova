@@ -34,10 +34,11 @@ int main(){
         printf("---Biblioteca Vilanova---\n");
         printf("Suas opcoes: \n");
         printf("1 - Cadastrar livro\n");
-        printf("2 - Listar livro\n");
+        printf("2 - Listar livros\n");
         printf("3 - Buscar codigo\n");
         printf("4 - Pegar livro emprestado\n");
         printf("5 - Devolver livro\n");
+        printf("6 - Relatorio\n");
         printf("0 - Sair\n");
         printf("Escolha um numero: ");
         leitura = scanf("%d", &opcao);
@@ -91,6 +92,10 @@ int main(){
                 }
 
                 devolver_livro(acervo, quantidade, codigo_busca);
+                break;
+
+            case 6:
+                relatorio(acervo, quantidade);
                 break;
 
             case 0:

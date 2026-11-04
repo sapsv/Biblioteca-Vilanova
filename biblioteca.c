@@ -12,7 +12,7 @@ int ler_codigo(void){
     int ch;
 
     while (1){
-        printf("Insira o codigo de 3 digitos: ");
+        printf("Insira o codigo de 3 digitos (100 - 999): ");
         resultado = scanf("%d", &codigo);
 
         if (resultado == EOF) return -1;
@@ -29,7 +29,7 @@ int ler_codigo(void){
         }
 
         if (codigo < 100 || codigo > 999){
-            printf("Entrada com mais ou menos de 3 digitos\n");
+            printf("Codigo precisa ser de 3 digitos (100 - 999)\n");
             if (ch == EOF) return -1;
             continue;
         }

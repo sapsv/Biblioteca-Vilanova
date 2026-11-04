@@ -12,7 +12,7 @@ int ler_codigo(void){
     int ch;
 
     while (1){
-        printf("Insira o codigo: ");
+        printf("Insira o codigo de 3 digitos: ");
         resultado = scanf("%d", &codigo);
 
         if (resultado == EOF) return -1;

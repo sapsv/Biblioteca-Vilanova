@@ -35,7 +35,7 @@ int main(){
         printf("5 - Devolver livro\n");
         printf("6 - Relatorio\n");
         printf("0 - Sair\n");
-        printf("Escolha um numero: ");
+        printf("Escolha um dos numeros acima: ");
         leitura = scanf("%d", &opcao);
 
         if (leitura != 1) {
